@@ -1,0 +1,25 @@
+# Configuration for IALWGAN experiments
+
+# Training Parameters
+batch_size: 64
+num_epochs_expt1: 5
+num_epochs_expt2: 3
+num_epochs_expt3: 3
+learning_rate: 0.0002
+
+# Model Parameters
+z_dim: 100
+
+# Loss Weights
+lambda_iso: 1.0
+lambda_mmd: 0.1
+lambda_rank: 0.1
+
+# Hyperparameter Sensitivity for isometric loss (λ₂)
+lambda_values: [0.0, 0.1, 0.5, 1.0, 2.0]
+
+# Output Directories
+image_output_dir: .research/iteration1/images
+
+# Dataset
+dataset: CIFAR10
