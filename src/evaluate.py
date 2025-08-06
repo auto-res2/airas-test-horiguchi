@@ -8,7 +8,7 @@ from scipy.stats import pearsonr
 
 
 def evaluate_lambda(lambda_iso_value, model_constructor, dataloader, device, NetQ, NetG, NetD):
-    """ 
+    """
     Train one instance of IALWGAN with a given lambda_iso value and return metrics.
     """
     z_dim = 100
@@ -42,8 +42,8 @@ def evaluate_lambda(lambda_iso_value, model_constructor, dataloader, device, Net
     with torch.no_grad():
         latent_vectors = model.netQ(batch_data, rank=0)
     batch_flat = batch_data.view(batch_data.size(0), -1)
-    latent_dists = torch.cdist(latent_vectors, latent_vectors, p=2).cpu().numpy().flatten()
-    data_dists = torch.cdist(batch_flat, batch_flat, p=2).cpu().numpy().flatten()
+    latent_dists = torch.cdist(latent_vectors, latent_vectors, p=2).detach().cpu().numpy().flatten()
+    data_dists = torch.cdist(batch_flat, batch_flat, p=2).detach().cpu().numpy().flatten()
     r, _ = pearsonr(latent_dists, data_dists)
 
     return loss_history, recon_error, r
@@ -56,8 +56,8 @@ def compute_distance_correlation(embeddings, feature_output=None):
     """
     if feature_output is None:
         feature_output = embeddings
-    latent_dists = torch.cdist(embeddings, embeddings, p=2).numpy().flatten()
-    feature_dists = torch.cdist(feature_output, feature_output, p=2).numpy().flatten()
+    latent_dists = torch.cdist(embeddings, embeddings, p=2).detach().cpu().numpy().flatten()
+    feature_dists = torch.cdist(feature_output, feature_output, p=2).detach().cpu().numpy().flatten()
     r, _ = pearsonr(latent_dists, feature_dists)
     return r
 
@@ -66,8 +66,8 @@ def latent_interpolation(model, img1, img2, steps=10, device=torch.device('cpu')
     model.eval()
     interpolated = []
     with torch.no_grad():
-        z1 = model.netQ(img1.unsqueeze(0).to(device), rank=0)
-        z2 = model.netQ(img2.unsqueeze(0).to(device), rank=0)
+        z1 = model.netQ(img1.unsqueeze(0).to(device), rank=0).detach()
+        z2 = model.netQ(img2.unsqueeze(0).to(device), rank=0).detach()
         for alpha in np.linspace(0, 1, steps):
             z_interp = (1 - alpha) * z1 + alpha * z2
             generated = model.netG(z_interp)
@@ -79,7 +79,6 @@ def plot_interpolations(interpolations, title="Interpolation", filename="interpo
     from torchvision import utils
     import os
     # Create directory if not exists
-    import os
     out_dir = os.path.join('.research', 'iteration1', 'images')
     os.makedirs(out_dir, exist_ok=True)
     
@@ -120,15 +119,15 @@ def plot_hyperparameter_results(lambdas, recon_errors, correlations, filename="l
     plt.figure(figsize=(12, 5))
     plt.subplot(1, 2, 1)
     plt.plot(lambdas, recon_errors, marker='o')
-    plt.xlabel("λ₂ (isometric loss weight)")
+    plt.xlabel("\u03BB₂ (isometric loss weight)")
     plt.ylabel("Reconstruction Error (MSE)")
-    plt.title("Reconstruction Error vs. λ₂")
+    plt.title("Reconstruction Error vs. \u03BB₂")
     
     plt.subplot(1, 2, 2)
     plt.plot(lambdas, correlations, marker='x', color='red')
-    plt.xlabel("λ₂ (isometric loss weight)")
+    plt.xlabel("\u03BB₂ (isometric loss weight)")
     plt.ylabel("Latent-Data Distance Correlation")
-    plt.title("Distance Correlation vs. λ₂")
+    plt.title("Distance Correlation vs. \u03BB₂")
     plt.tight_layout()
     filepath = os.path.join(out_dir, filename)
     plt.savefig(filepath, bbox_inches='tight')
